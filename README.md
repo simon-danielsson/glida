@@ -1,5 +1,5 @@
 <p align="center">
-    <img src="media/logo.png" alt="glida" width="200"/>
+    <img src="media/logo.png" alt="glida" width="140"/>
 </p>
   
 <p align="center">
