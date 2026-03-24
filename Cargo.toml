@@ -1,0 +1,13 @@
+[package]
+name = "glida"
+version = "0.1.0"
+edition = "2024"
+description = "A fast, language-aware CLI tool that counts lines of code, comments, and blanks across projects."
+repository = "https://github.com/simon-danielsson/glida"
+authors = ["Simon Danielsson <contact@simondanielsson.se>"]
+keywords = ["utility", "project-management", "productivity", "cli"]
+homepage = "https://www.simondanielsson.se"
+license = "MIT"
+rust-version = "1.94.0"
+
+[dependencies]
