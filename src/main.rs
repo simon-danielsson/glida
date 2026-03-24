@@ -11,18 +11,27 @@ mod utils;
 // *brakoll - d: init setup of args parsing and help subcommand, p: 100, t: feature, s: closed
 
 fn count_files(dir: &PathBuf) -> usize {
-    WalkDir::new(dir)
+    // *brakoll - d: add extra spinner to account for scanning of file amount, p: 100, t: feature, s: closed
+    let setup_spinner = ProgressBar::new_spinner().with_message("Initializing program...");
+    setup_spinner.set_style(ProgressStyle::with_template("{spinner} {msg}").unwrap().tick_strings(&["","","","", "", ""]));
+
+    setup_spinner.enable_steady_tick(Duration::from_millis(80));
+
+    let mut counter = 0;
+    let count = WalkDir::new(dir)
         .into_iter()
         .filter_map(|e| e.ok())
         .filter(|e| e.file_type().is_file())
-        .count()
+        .inspect(|_| {
+            counter += 1;
+            setup_spinner.set_message(format!("{} files found...", counter))
+        })
+        .count();
+    setup_spinner.finish_and_clear();
+    count
 }
 
 fn main() -> io::Result<()> {
-    // *brakoll - d: add extra spinner to account for scanning of file amount, p: 100, t: feature, s: closed
-    let setup_spinner = ProgressBar::new_spinner().with_message("Initializing program...");
-    setup_spinner.enable_steady_tick(Duration::from_millis(100));
-
     let args = utils::arg::parse()?;
 
     if args.help {
@@ -30,13 +39,13 @@ fn main() -> io::Result<()> {
         return Ok(());
     }
 
+    // *brakoll - d: make spinner and progress bar prettier, p: 10, t: fix, s: closed
     let mut g = Glida::new(args.clone(), count_files(&args.target_dir));
-    setup_spinner.finish_and_clear();
 
     g.pb.set_style(
         ProgressStyle::with_template(" {bar:40.orange/blue} {pos:>7}/{len:7} {msg}")
             .unwrap()
-            .progress_chars(">>."),
+            .progress_chars("█░"),
     );
 
     g.pb.set_message("Scanning directory...");
