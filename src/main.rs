@@ -20,18 +20,29 @@ fn main() -> io::Result<()> {
 
     g.scan_dir()?;
 
-    g.print_results();
+    let rvec = g.get_results();
+    // for r in rvec {
+    //     println!("{:?}", r);
+    // }
 
-    // println!("{:?}", args.target_dir);
+    g.print_results(rvec);
+
     Ok(())
 }
 
 struct File {
-    name: String,
     blank_lines: u32,
     comment_lines: u32,
     code_lines: u32,
     lang_type: LangType,
+}
+
+#[derive(Debug)]
+struct ResultPrint {
+    name: String,
+    blank_lines: u32,
+    comment_lines: u32,
+    code_lines: u32,
 }
 
 #[derive(Debug, Eq, Hash, PartialEq, Clone, Copy)]
@@ -85,9 +96,29 @@ impl Glida {
         }
     }
 
+    fn print_results(&mut self, rvec: Vec<ResultPrint>) {
+        println!(
+            "\n{:<10} {:<10} {:<10} {:<10}",
+            "Language", "Code", "Comments", "Blank"
+        );
+        let div = "-".repeat(40);
+        println!("{}", div);
+
+        for r in rvec {
+            if r.name == "total" {
+                let div = "=".repeat(40);
+                println!("{}", div)
+            }
+            println!(
+                "{:<10} {:<10} {:<10} {:<10}",
+                r.name, r.code_lines, r.comment_lines, r.blank_lines
+            );
+        }
+    }
+
     // *brakoll - d: first rough version, p: 100, t: feature, s: closed
     // *brakoll - d: prettier results print, p: 100, t: feature, s: closed
-    fn print_results(&mut self) {
+    fn get_results(&mut self) -> Vec<ResultPrint> {
         let mut lang_groups: HashMap<LangType, Vec<&File>> = HashMap::new();
 
         macro_rules! push_l {
@@ -140,6 +171,8 @@ impl Glida {
             };
         }
 
+        let mut rvec: Vec<ResultPrint> = Vec::new();
+
         // each lang
         let mut total_code = 0;
         let mut total_comm = 0;
@@ -156,16 +189,20 @@ impl Glida {
                 blanks += c.blank_lines;
                 total_blnk += c.blank_lines;
             }
-            println!("lang: {}", l);
-            println!("code: {}", code);
-            println!("comm: {}", comments);
-            println!("blnk: {}", blanks);
-            println!("----------");
+            rvec.push(ResultPrint {
+                name: l.to_string(),
+                blank_lines: blanks,
+                comment_lines: comments,
+                code_lines: code,
+            });
         }
-        println!("== TOTAL ==");
-        println!("code: {}", total_code);
-        println!("comm: {}", total_comm);
-        println!("blnk: {}", total_blnk);
+        rvec.push(ResultPrint {
+            name: "total".to_string(),
+            blank_lines: total_blnk,
+            comment_lines: total_comm,
+            code_lines: total_code,
+        });
+        rvec
     }
 
     fn scan_dir(&mut self) -> io::Result<()> {
@@ -227,7 +264,6 @@ impl Glida {
             }
 
             self.files.push(File {
-                name: f_name.to_string(),
                 blank_lines,
                 comment_lines,
                 code_lines,
