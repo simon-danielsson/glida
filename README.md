@@ -19,8 +19,10 @@
   <a href="#license">License</a>
 </p>  
    
-![demo](./media/demo.gif)
-
+<p align="center">
+  <img src="./media/demo.gif" width="400"/>
+</p>
+  
 ---
 <div id="install"></div>
 
