@@ -84,6 +84,7 @@ impl fmt::Display for LangType {
 struct Glida {
     files: Vec<File>,
     args: Arguments,
+    files_ignored: u32,
 }
 
 // *brakoll - d: implement loading bar or some sort of scanning indication through indicatif, p: 80, t: feature, s: open
@@ -92,24 +93,39 @@ impl Glida {
         Self {
             files: Vec::new(),
             args,
+            files_ignored: 0,
         }
     }
     // *brakoll - d: the amount of files of each lang would also be nice to see printed in the result (would require changes in get_results function), p: 50, t: feature, s: closed
 
     // *brakoll - d: sort results from top to bottom by amount of code lines, p: 80, t: feature, s: open
     // *brakoll - d: add colored output? that can be toggled off with flag (true would be def), p: 20, t: feature, s: open
-    fn print_results(&mut self, rvec: Vec<ResultPrint>) {
-        println!(
-            "\n{:<10} {:<10} {:<10} {:<10} {:<10}",
-            "Language", "Files", "Code", "Comment", "Blank"
-        );
+    /// helper: print_results
+    fn print_div(&self) {
         let div = "-".repeat(50);
         println!("{}", div);
+    }
+    fn print_results(&mut self, rvec: Vec<ResultPrint>) {
+        println!("\nFiles ignored: {}", self.files_ignored);
+        self.print_div();
+        println!(
+            "{:<10} {:<10} {:<10} {:<10} {:<10}",
+            "Language", "Files", "Code", "Comment", "Blank"
+        );
+        self.print_div();
 
-        for r in rvec {
+        for mut r in rvec {
             if r.name == "total" {
-                let div = "=".repeat(50);
-                println!("{}", div)
+                // capitalize first letter of total
+                if let Some(first) = r.name.chars().next() {
+                    r.name = first.to_uppercase().to_string()
+                        + &r.name
+                            .chars()
+                            .skip(1)
+                            .collect::<String>()
+                            .to_lowercase();
+                }
+                self.print_div();
             }
             println!(
                 "{:<10} {:<10} {:<10} {:<10} {:<10}",
@@ -213,6 +229,7 @@ impl Glida {
         rvec
     }
 
+    // *brakoll - d: add files ignored print at result, p: 15, t: feature, s: closed
     fn scan_dir(&mut self) -> io::Result<()> {
         for entry in WalkDir::new(&self.args.target_dir)
             .follow_links(false)
@@ -221,6 +238,7 @@ impl Glida {
         {
             // *brakoll - d: skip git folders, p: , t: feature, s: closed
             if entry.path().to_str().unwrap().contains("git") {
+                self.files_ignored += 1;
                 continue;
             }
 
@@ -246,11 +264,13 @@ impl Glida {
 
             // skip unknown files
             if l_type == LangType::Unknown {
+                self.files_ignored += 1;
                 continue;
             }
 
             // *brakoll - d: add dir check in scan function to prevent undefined behaviour, p: 100, t: fix, s: closed
             if entry.clone().into_path().is_dir() {
+                self.files_ignored += 1;
                 continue;
             }
 
