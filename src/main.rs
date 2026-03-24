@@ -88,6 +88,7 @@ struct Glida {
     args: Arguments,
 }
 
+// *brakoll - d: implement loading bar or some sort of scanning indication through indicatif, p: 80, t: feature, s: open
 impl Glida {
     fn new(args: Arguments) -> Self {
         Self {
@@ -95,7 +96,10 @@ impl Glida {
             args,
         }
     }
+    // *brakoll - d: the amount of files of each lang would also be nice to see printed in the result (would require changes in get_results function), p: 50, t: feature, s: prog
 
+    // *brakoll - d: sort results from top to bottom by amount of code lines, p: 80, t: feature, s: open
+    // *brakoll - d: add colored output? that can be toggled off with flag (true would be def), p: 20, t: feature, s: open
     fn print_results(&mut self, rvec: Vec<ResultPrint>) {
         println!(
             "\n{:<10} {:<10} {:<10} {:<10}",

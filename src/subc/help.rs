@@ -1,6 +1,6 @@
 const HELP_BODY: &str = include_str!("../static/help.txt");
 
-// *brakoll - d: overhaul readme, p: 20, t: docs, s: open
+// *brakoll - d: overhaul readme, p: 20, t: docs, s: closed
 
 // app info
 const APP_NAME: &str = env!("CARGO_PKG_NAME");
