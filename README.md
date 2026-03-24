@@ -3,7 +3,7 @@
 </p>
   
 <p align="center">
-  <em>A fast, language-aware CLI tool that counts lines of code, comments, and blanks across projects.</em>
+  <em>A fast, language-aware CLI tool that counts lines<br>of code, comments, and blanks across projects.</em>
 </p>
   
 <p align="center">
