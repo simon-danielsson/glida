@@ -1,4 +1,4 @@
-use std::{fmt, fs, io};
+use std::{collections::HashMap, fmt, fs, io};
 
 use walkdir::WalkDir;
 
@@ -22,7 +22,7 @@ fn main() -> io::Result<()> {
 
     g.print_results();
 
-    println!("{:?}", args.target_dir);
+    // println!("{:?}", args.target_dir);
     Ok(())
 }
 
@@ -34,7 +34,7 @@ struct File {
     lang_type: LangType,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Eq, Hash, PartialEq, Clone, Copy)]
 enum LangType {
     Html,
     Rust,
@@ -86,16 +86,86 @@ impl Glida {
     }
 
     // *brakoll - d: first rough version, p: 100, t: feature, s: closed
+    // *brakoll - d: prettier results print, p: 100, t: feature, s: closed
     fn print_results(&mut self) {
-        for f in &self.files {
-            println!("Name: {}", f.name);
-            println!("Lang: {}", f.lang_type);
-            println!("Blnk: {}", f.blank_lines);
-            println!("Comm: {}", f.comment_lines);
-            println!("Code: {}", f.code_lines);
-            println!("-------------")
-            // println!("Path: {}", f.fpath.display());
+        let mut lang_groups: HashMap<LangType, Vec<&File>> = HashMap::new();
+
+        macro_rules! push_l {
+            ($map:expr, $key:expr, $value:expr) => {
+                $map.entry($key).or_insert_with(Vec::new).push($value);
+            };
         }
+
+        for f in &self.files {
+            match f.lang_type {
+                LangType::Html => {
+                    push_l!(lang_groups, f.lang_type, f);
+                }
+                LangType::Rust => {
+                    push_l!(lang_groups, f.lang_type, f);
+                }
+                LangType::D => {
+                    push_l!(lang_groups, f.lang_type, f);
+                }
+                LangType::Javascript => {
+                    push_l!(lang_groups, f.lang_type, f);
+                }
+                LangType::Markdown => {
+                    push_l!(lang_groups, f.lang_type, f);
+                }
+                LangType::Text => {
+                    push_l!(lang_groups, f.lang_type, f);
+                }
+                LangType::Toml => {
+                    push_l!(lang_groups, f.lang_type, f);
+                }
+                LangType::Json => {
+                    push_l!(lang_groups, f.lang_type, f);
+                }
+                LangType::Css => {
+                    push_l!(lang_groups, f.lang_type, f);
+                }
+                LangType::Svg => {
+                    push_l!(lang_groups, f.lang_type, f);
+                }
+                LangType::Shell => {
+                    push_l!(lang_groups, f.lang_type, f);
+                }
+                LangType::Python => {
+                    push_l!(lang_groups, f.lang_type, f);
+                }
+                LangType::Unknown => {
+                    push_l!(lang_groups, f.lang_type, f);
+                }
+            };
+        }
+
+        // each lang
+        let mut total_code = 0;
+        let mut total_comm = 0;
+        let mut total_blnk = 0;
+        for (l, f) in lang_groups {
+            let mut code = 0;
+            let mut comments = 0;
+            let mut blanks = 0;
+            for c in f {
+                code += c.code_lines;
+                total_code += c.code_lines;
+                comments += c.comment_lines;
+                total_comm += c.comment_lines;
+                blanks += c.blank_lines;
+                total_blnk += c.blank_lines;
+            }
+            println!("lang: {}", l);
+            println!("code: {}", code);
+            println!("comm: {}", comments);
+            println!("blnk: {}", blanks);
+            println!("----------");
+        }
+        println!("== TOTAL ==");
+        println!("code: {}", total_code);
+        println!("comm: {}", total_comm);
+        println!("blnk: {}", total_blnk);
     }
 
     fn scan_dir(&mut self) -> io::Result<()> {
