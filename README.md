@@ -19,7 +19,7 @@
   <a href="#license">License</a>
 </p>  
    
-![demo](./media/demo.mov)
+![demo](./media/demo.gif)
 
 ---
 <div id="install"></div>
