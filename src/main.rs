@@ -13,7 +13,11 @@ mod utils;
 fn count_files(dir: &PathBuf) -> usize {
     // *brakoll - d: add extra spinner to account for scanning of file amount, p: 100, t: feature, s: closed
     let setup_spinner = ProgressBar::new_spinner().with_message("Initializing program...");
-    setup_spinner.set_style(ProgressStyle::with_template("{spinner} {msg}").unwrap().tick_strings(&["","","","", "", ""]));
+    setup_spinner.set_style(
+        ProgressStyle::with_template("{spinner} {msg}")
+            .unwrap()
+            .tick_strings(&["", "", "", "", "", ""]),
+    );
 
     setup_spinner.enable_steady_tick(Duration::from_millis(80));
 
@@ -136,11 +140,13 @@ impl Glida {
 
     // *brakoll - d: sort results from top to bottom by amount of code lines, p: 80, t: feature, s: open
     // *brakoll - d: add colored output? that can be toggled off with flag (true would be def), p: 20, t: feature, s: open
+
     /// helper: print_results
     fn print_div(&self) {
         let div = "-".repeat(50);
         println!("{}", div);
     }
+
     fn print_results(&mut self, rvec: Vec<ResultPrint>) {
         println!("\nFiles ignored: {}", self.files_ignored);
         self.print_div();
