@@ -21,9 +21,6 @@ fn main() -> io::Result<()> {
     g.scan_dir()?;
 
     let rvec = g.get_results();
-    // for r in rvec {
-    //     println!("{:?}", r);
-    // }
 
     g.print_results(rvec);
 
@@ -40,6 +37,7 @@ struct File {
 #[derive(Debug)]
 struct ResultPrint {
     name: String,
+    files_amt: u32,
     blank_lines: u32,
     comment_lines: u32,
     code_lines: u32,
@@ -65,18 +63,18 @@ enum LangType {
 impl fmt::Display for LangType {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let s = match self {
-            Self::Html => "html",
-            Self::Rust => "rs",
-            Self::D => "d",
-            Self::Javascript => "js",
-            Self::Markdown => "md",
-            Self::Text => "txt",
-            Self::Toml => "toml",
-            Self::Json => "json",
-            Self::Css => "css",
-            Self::Svg => "svg",
-            Self::Shell => "sh",
-            Self::Python => "py",
+            Self::Html => "HTML",
+            Self::Rust => "Rust",
+            Self::D => "D",
+            Self::Javascript => "Javascript",
+            Self::Markdown => "Markdown",
+            Self::Text => "Text",
+            Self::Toml => "Toml",
+            Self::Json => "Json",
+            Self::Css => "CSS",
+            Self::Svg => "SVG",
+            Self::Shell => "Shell",
+            Self::Python => "Python",
             Self::Unknown => "",
         };
         write!(f, "{s}")
@@ -96,26 +94,26 @@ impl Glida {
             args,
         }
     }
-    // *brakoll - d: the amount of files of each lang would also be nice to see printed in the result (would require changes in get_results function), p: 50, t: feature, s: prog
+    // *brakoll - d: the amount of files of each lang would also be nice to see printed in the result (would require changes in get_results function), p: 50, t: feature, s: closed
 
     // *brakoll - d: sort results from top to bottom by amount of code lines, p: 80, t: feature, s: open
     // *brakoll - d: add colored output? that can be toggled off with flag (true would be def), p: 20, t: feature, s: open
     fn print_results(&mut self, rvec: Vec<ResultPrint>) {
         println!(
-            "\n{:<10} {:<10} {:<10} {:<10}",
-            "Language", "Code", "Comments", "Blank"
+            "\n{:<10} {:<10} {:<10} {:<10} {:<10}",
+            "Language", "Files", "Code", "Comment", "Blank"
         );
-        let div = "-".repeat(40);
+        let div = "-".repeat(50);
         println!("{}", div);
 
         for r in rvec {
             if r.name == "total" {
-                let div = "=".repeat(40);
+                let div = "=".repeat(50);
                 println!("{}", div)
             }
             println!(
-                "{:<10} {:<10} {:<10} {:<10}",
-                r.name, r.code_lines, r.comment_lines, r.blank_lines
+                "{:<10} {:<10} {:<10} {:<10} {:<10}",
+                r.name, r.files_amt, r.code_lines, r.comment_lines, r.blank_lines
             );
         }
     }
@@ -181,10 +179,12 @@ impl Glida {
         let mut total_code = 0;
         let mut total_comm = 0;
         let mut total_blnk = 0;
+        let mut total_files = 0;
         for (l, f) in lang_groups {
             let mut code = 0;
             let mut comments = 0;
             let mut blanks = 0;
+            let mut files = 0;
             for c in f {
                 code += c.code_lines;
                 total_code += c.code_lines;
@@ -192,9 +192,12 @@ impl Glida {
                 total_comm += c.comment_lines;
                 blanks += c.blank_lines;
                 total_blnk += c.blank_lines;
+                files += 1;
+                total_files += 1;
             }
             rvec.push(ResultPrint {
                 name: l.to_string(),
+                files_amt: files,
                 blank_lines: blanks,
                 comment_lines: comments,
                 code_lines: code,
@@ -202,6 +205,7 @@ impl Glida {
         }
         rvec.push(ResultPrint {
             name: "total".to_string(),
+            files_amt: total_files,
             blank_lines: total_blnk,
             comment_lines: total_comm,
             code_lines: total_code,
@@ -215,6 +219,11 @@ impl Glida {
             .into_iter()
             .filter_map(|e| e.ok())
         {
+            // *brakoll - d: skip git folders, p: , t: feature, s: closed
+            if entry.path().to_str().unwrap().contains("git") {
+                continue;
+            }
+
             // get name
             let f_name = entry.file_name().to_str().unwrap();
 
