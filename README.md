@@ -54,3 +54,4 @@ This project is licensed under the [MIT License](https://github.com/simon-daniel
 ## Dependencies
   
 - [walkdir](https://github.com/BurntSushi/walkdir)  
+- [indicatif](https://github.com/console-rs/indicatif)  

@@ -1,6 +1,6 @@
 [package]
 name = "glida"
-version = "0.1.6"
+version = "0.1.7"
 edition = "2024"
 description = "A fast, language-aware CLI tool that counts lines of code, comments, and blanks across projects."
 repository = "https://github.com/simon-danielsson/glida"
@@ -11,4 +11,5 @@ license = "MIT"
 rust-version = "1.94.0"
 
 [dependencies]
+indicatif = "0.18.4"
 walkdir = "2.5.0"

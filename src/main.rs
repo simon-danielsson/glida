@@ -1,5 +1,6 @@
-use std::{collections::HashMap, fmt, fs, io};
+use std::{collections::HashMap, fmt, fs, io, path::PathBuf};
 
+use indicatif::{ProgressBar, ProgressStyle};
 use walkdir::WalkDir;
 
 use crate::utils::arg::Arguments;
@@ -8,6 +9,15 @@ mod subc;
 mod utils;
 
 // *brakoll - d: init setup of args parsing and help subcommand, p: 100, t: feature, s: closed
+
+fn count_files(dir: &PathBuf) -> usize {
+    WalkDir::new(dir)
+        .into_iter()
+        .filter_map(|e| e.ok())
+        .filter(|e| e.file_type().is_file())
+        .count()
+}
+
 fn main() -> io::Result<()> {
     let args = utils::arg::parse()?;
 
@@ -16,9 +26,17 @@ fn main() -> io::Result<()> {
         return Ok(());
     }
 
-    let mut g = Glida::new(args.clone());
+    let mut g = Glida::new(args.clone(), count_files(&args.target_dir));
+
+    g.pb.set_style(
+        ProgressStyle::with_template(" {bar:40.orange/blue} {pos:>7}/{len:7} {msg}")
+            .unwrap()
+            .progress_chars(">>."),
+    );
 
     g.scan_dir()?;
+
+    g.pb.finish_and_clear();
 
     let rvec = g.get_results();
 
@@ -85,15 +103,17 @@ struct Glida {
     files: Vec<File>,
     args: Arguments,
     files_ignored: u32,
+    pb: ProgressBar,
 }
 
-// *brakoll - d: implement loading bar or some sort of scanning indication through indicatif, p: 80, t: feature, s: open
+// *brakoll - d: implement loading bar or some sort of scanning indication through indicatif, p: 80, t: feature, s: closed
 impl Glida {
-    fn new(args: Arguments) -> Self {
+    fn new(args: Arguments, file_amt: usize) -> Self {
         Self {
             files: Vec::new(),
             args,
             files_ignored: 0,
+            pb: ProgressBar::new(file_amt as u64),
         }
     }
     // *brakoll - d: the amount of files of each lang would also be nice to see printed in the result (would require changes in get_results function), p: 50, t: feature, s: closed
@@ -239,6 +259,7 @@ impl Glida {
             // *brakoll - d: skip git folders, p: , t: feature, s: closed
             if entry.path().to_str().unwrap().contains("git") {
                 self.files_ignored += 1;
+                self.pb.inc(1);
                 continue;
             }
 
@@ -265,12 +286,14 @@ impl Glida {
             // skip unknown files
             if l_type == LangType::Unknown {
                 self.files_ignored += 1;
+                self.pb.inc(1);
                 continue;
             }
 
             // *brakoll - d: add dir check in scan function to prevent undefined behaviour, p: 100, t: fix, s: closed
             if entry.clone().into_path().is_dir() {
                 self.files_ignored += 1;
+                self.pb.inc(1);
                 continue;
             }
 
@@ -302,6 +325,7 @@ impl Glida {
                 code_lines,
                 lang_type: l_type,
             });
+            self.pb.inc(1);
         }
 
         Ok(())
