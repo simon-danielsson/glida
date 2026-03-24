@@ -1,6 +1,6 @@
 [package]
 name = "glida"
-version = "0.1.7"
+version = "0.1.8"
 edition = "2024"
 description = "A fast, language-aware CLI tool that counts lines of code, comments, and blanks across projects."
 repository = "https://github.com/simon-danielsson/glida"

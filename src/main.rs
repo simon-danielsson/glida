@@ -1,4 +1,4 @@
-use std::{collections::HashMap, fmt, fs, io, path::PathBuf};
+use std::{collections::HashMap, fmt, fs, io, path::PathBuf, time::Duration};
 
 use indicatif::{ProgressBar, ProgressStyle};
 use walkdir::WalkDir;
@@ -19,6 +19,10 @@ fn count_files(dir: &PathBuf) -> usize {
 }
 
 fn main() -> io::Result<()> {
+    // *brakoll - d: add extra spinner to account for scanning of file amount, p: 100, t: feature, s: closed
+    let setup_spinner = ProgressBar::new_spinner().with_message("Initializing program...");
+    setup_spinner.enable_steady_tick(Duration::from_millis(100));
+
     let args = utils::arg::parse()?;
 
     if args.help {
@@ -27,12 +31,15 @@ fn main() -> io::Result<()> {
     }
 
     let mut g = Glida::new(args.clone(), count_files(&args.target_dir));
+    setup_spinner.finish_and_clear();
 
     g.pb.set_style(
         ProgressStyle::with_template(" {bar:40.orange/blue} {pos:>7}/{len:7} {msg}")
             .unwrap()
             .progress_chars(">>."),
     );
+
+    g.pb.set_message("Scanning directory...");
 
     g.scan_dir()?;
 
