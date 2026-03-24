@@ -1,0 +1,7 @@
+General usage:
+$ glida <target dir>
+
+== Subcommands ==
+
+help: view available flags, subcommands etc.
+$ glida help
