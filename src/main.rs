@@ -199,6 +199,11 @@ impl Glida {
                 continue;
             }
 
+            // *brakoll - d: add dir check in scan function to prevent undefined behaviour, p: 100, t: fix, s: closed
+            if entry.clone().into_path().is_dir() {
+                continue;
+            }
+
             let fpath = entry.clone().into_path();
 
             // scan lines
