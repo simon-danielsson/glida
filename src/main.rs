@@ -15,8 +15,8 @@ fn count_files(dir: &PathBuf) -> usize {
     let setup_spinner = ProgressBar::new_spinner().with_message("Initializing program...");
     setup_spinner.set_style(
         ProgressStyle::with_template("{spinner} {msg}")
-            .unwrap()
-            .tick_strings(&["", "", "", "", "", ""]),
+        .unwrap()
+        .tick_strings(&["", "", "", "", "", ""]),
     );
 
     setup_spinner.enable_steady_tick(Duration::from_millis(80));
@@ -30,7 +30,7 @@ fn count_files(dir: &PathBuf) -> usize {
             counter += 1;
             setup_spinner.set_message(format!("{} files found...", counter))
         })
-        .count();
+    .count();
     setup_spinner.finish_and_clear();
     count
 }
@@ -48,8 +48,8 @@ fn main() -> io::Result<()> {
 
     g.pb.set_style(
         ProgressStyle::with_template(" {bar:40.orange/blue} {pos:>7}/{len:7} {msg}")
-            .unwrap()
-            .progress_chars("█░"),
+        .unwrap()
+        .progress_chars("█░"),
     );
 
     g.pb.set_message("Scanning directory...");
@@ -81,8 +81,10 @@ struct ResultPrint {
     code_lines: u32,
 }
 
+// *brakoll - d: add lua support, p: 100, t: feat, s: closed
 #[derive(Debug, Eq, Hash, PartialEq, Clone, Copy)]
 enum LangType {
+    Lua,
     Html,
     Rust,
     D,
@@ -101,6 +103,7 @@ enum LangType {
 impl fmt::Display for LangType {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let s = match self {
+            Self::Lua => "Lua",
             Self::Html => "HTML",
             Self::Rust => "Rust",
             Self::D => "D",
@@ -162,10 +165,10 @@ impl Glida {
                 if let Some(first) = r.name.chars().next() {
                     r.name = first.to_uppercase().to_string()
                         + &r.name
-                            .chars()
-                            .skip(1)
-                            .collect::<String>()
-                            .to_lowercase();
+                        .chars()
+                        .skip(1)
+                        .collect::<String>()
+                        .to_lowercase();
                 }
                 self.print_div();
             }
@@ -189,6 +192,9 @@ impl Glida {
 
         for f in &self.files {
             match f.lang_type {
+                LangType::Lua => {
+                    push_l!(lang_groups, f.lang_type, f);
+                }
                 LangType::Html => {
                     push_l!(lang_groups, f.lang_type, f);
                 }
@@ -275,80 +281,81 @@ impl Glida {
     fn scan_dir(&mut self) -> io::Result<()> {
         for entry in WalkDir::new(&self.args.target_dir)
             .follow_links(false)
-            .into_iter()
-            .filter_map(|e| e.ok())
-        {
-            // *brakoll - d: skip git folders, p: , t: feature, s: closed
-            if entry.path().to_str().unwrap().contains("git") {
-                self.files_ignored += 1;
-                self.pb.inc(1);
-                continue;
-            }
-
-            // get name
-            let f_name = entry.file_name().to_str().unwrap();
-
-            // get lang_type based on ext
-            let l_type: LangType = match f_name.split('.').last().unwrap() {
-                "html" => LangType::Html,
-                "rs" => LangType::Rust,
-                "d" => LangType::D,
-                "js" => LangType::Javascript,
-                "md" => LangType::Markdown,
-                "txt" => LangType::Text,
-                "toml" => LangType::Toml,
-                "json" => LangType::Json,
-                "css" => LangType::Css,
-                "svg" => LangType::Svg,
-                "sh" => LangType::Shell,
-                "py" => LangType::Python,
-                _ => LangType::Unknown,
-            };
-
-            // skip unknown files
-            if l_type == LangType::Unknown {
-                self.files_ignored += 1;
-                self.pb.inc(1);
-                continue;
-            }
-
-            // *brakoll - d: add dir check in scan function to prevent undefined behaviour, p: 100, t: fix, s: closed
-            if entry.clone().into_path().is_dir() {
-                self.files_ignored += 1;
-                self.pb.inc(1);
-                continue;
-            }
-
-            let fpath = entry.clone().into_path();
-
-            // scan lines
-            let contents = fs::read_to_string(&fpath)?;
-
-            let mut comment_lines: u32 = 0;
-            let mut blank_lines: u32 = 0;
-            let mut code_lines: u32 = 0;
-
-            for line in contents.lines() {
-                if line.starts_with("//")
-                || line.starts_with("#") || line.starts_with("<!--")
-                || line.starts_with("--!>")
+                .into_iter()
+                .filter_map(|e| e.ok())
                 {
-                    comment_lines += 1;
-                } else if line.trim().is_empty() {
-                    blank_lines += 1;
-                } else {
-                    code_lines += 1;
-                }
-            }
+                    // *brakoll - d: skip git folders, p: , t: feature, s: closed
+                    if entry.path().to_str().unwrap().contains("git") {
+                        self.files_ignored += 1;
+                        self.pb.inc(1);
+                        continue;
+                    }
 
-            self.files.push(File {
-                blank_lines,
-                comment_lines,
-                code_lines,
-                lang_type: l_type,
-            });
-            self.pb.inc(1);
-        }
+                    // get name
+                    let f_name = entry.file_name().to_str().unwrap();
+
+                    // get lang_type based on ext
+                    let l_type: LangType = match f_name.split('.').last().unwrap() {
+                        "lua" => LangType::Lua,
+                        "html" => LangType::Html,
+                        "rs" => LangType::Rust,
+                        "d" => LangType::D,
+                        "js" => LangType::Javascript,
+                        "md" => LangType::Markdown,
+                        "txt" => LangType::Text,
+                        "toml" => LangType::Toml,
+                        "json" => LangType::Json,
+                        "css" => LangType::Css,
+                        "svg" => LangType::Svg,
+                        "sh" => LangType::Shell,
+                        "py" => LangType::Python,
+                        _ => LangType::Unknown,
+                    };
+
+                    // skip unknown files
+                    if l_type == LangType::Unknown {
+                        self.files_ignored += 1;
+                        self.pb.inc(1);
+                        continue;
+                    }
+
+                    // *brakoll - d: add dir check in scan function to prevent undefined behaviour, p: 100, t: fix, s: closed
+                    if entry.clone().into_path().is_dir() {
+                        self.files_ignored += 1;
+                        self.pb.inc(1);
+                        continue;
+                    }
+
+                    let fpath = entry.clone().into_path();
+
+                    // scan lines
+                    let contents = fs::read_to_string(&fpath)?;
+
+                    let mut comment_lines: u32 = 0;
+                    let mut blank_lines: u32 = 0;
+                    let mut code_lines: u32 = 0;
+
+                    for line in contents.lines() {
+                        if line.starts_with("//")
+                            || line.starts_with("#") || line.starts_with("<!--")
+                                || line.starts_with("--!>")
+                        {
+                            comment_lines += 1;
+                        } else if line.trim().is_empty() {
+                            blank_lines += 1;
+                        } else {
+                            code_lines += 1;
+                        }
+                    }
+
+                    self.files.push(File {
+                        blank_lines,
+                        comment_lines,
+                        code_lines,
+                        lang_type: l_type,
+                    });
+                    self.pb.inc(1);
+                }
 
         Ok(())
     }
