@@ -7,7 +7,6 @@ use crate::utils::arg::Arguments;
 
 mod subc;
 mod utils;
-
 // *brakoll - d: init setup of args parsing and help subcommand, p: 100, t: feature, s: closed
 
 fn count_files(dir: &PathBuf) -> usize {
@@ -82,12 +81,15 @@ struct ResultPrint {
 }
 
 // *brakoll - d: add lua support, p: 100, t: feat, s: closed
+// *brakoll - d: add c/cpp support, p: 100, t: feat, s: closed
 #[derive(Debug, Eq, Hash, PartialEq, Clone, Copy)]
 enum LangType {
     Lua,
     Html,
     Rust,
     D,
+    C,
+    Cpp,
     Javascript,
     Markdown,
     Text,
@@ -107,6 +109,8 @@ impl fmt::Display for LangType {
             Self::Html => "HTML",
             Self::Rust => "Rust",
             Self::D => "D",
+            Self::C => "C",
+            Self::Cpp => "C++",
             Self::Javascript => "Javascript",
             Self::Markdown => "Markdown",
             Self::Text => "Text",
@@ -202,6 +206,12 @@ impl Glida {
                     push_l!(lang_groups, f.lang_type, f);
                 }
                 LangType::D => {
+                    push_l!(lang_groups, f.lang_type, f);
+                }
+                LangType::C => {
+                    push_l!(lang_groups, f.lang_type, f);
+                }
+                LangType::Cpp => {
                     push_l!(lang_groups, f.lang_type, f);
                 }
                 LangType::Javascript => {
@@ -300,6 +310,8 @@ impl Glida {
                         "html" => LangType::Html,
                         "rs" => LangType::Rust,
                         "d" => LangType::D,
+                        "c" => LangType::C,
+                        "cpp" => LangType::Cpp,
                         "js" => LangType::Javascript,
                         "md" => LangType::Markdown,
                         "txt" => LangType::Text,
